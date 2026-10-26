@@ -67,7 +67,9 @@ class NoteStore:
 
 def create_app(insecure: bool = False) -> FastAPI:
     # The interactive docs load scripts from a CDN, which the CSP would block; the
-    # OpenAPI document itself stays available for the ZAP API scan.
+    # OpenAPI document itself stays available for the ZAP API scan. The HTML routes are left
+    # out of it: the API scan treats any non-JSON response as an alert, and the full scan
+    # (spider + active) covers the pages instead.
     app = FastAPI(title="Notes", version="1.0.0", docs_url=None, redoc_url=None)
     store = NoteStore()
     store.add(NoteIn(title="Welcome", body="This note is seeded so the page is not empty."))
@@ -104,17 +106,21 @@ def create_app(insecure: bool = False) -> FastAPI:
             raise HTTPException(status_code=404, detail="note not found")
         return note
 
-    @app.get("/", response_class=HTMLResponse)
+    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
     def index() -> HTMLResponse:
         items = "".join(
             f"<li><strong>{html.escape(n.title)}</strong> {html.escape(n.body)}</li>" for n in store.all()
         )
-        page = f"<!doctype html><html lang='en'><head><title>Notes</title></head><body><h1>Notes</h1><ul>{items}</ul></body></html>"
+        page = (
+            "<!doctype html><html lang='en'><head><title>Notes</title></head><body>"
+            f"<h1>Notes</h1><ul>{items}</ul>"
+            "<p><a href='/search?q=welcome'>Search for welcome</a></p></body></html>"
+        )
         response = HTMLResponse(page)
         response.set_cookie("session", "anonymous", httponly=True, secure=not insecure, samesite="strict")
         return response
 
-    @app.get("/search", response_class=HTMLResponse)
+    @app.get("/search", response_class=HTMLResponse, include_in_schema=False)
     def search(q: str = "") -> HTMLResponse:
         shown = q if insecure else html.escape(q)  # insecure mode reflects raw input on purpose
         hits = [n for n in store.all() if q.lower() in n.title.lower()]

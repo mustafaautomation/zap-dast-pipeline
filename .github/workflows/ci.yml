@@ -38,7 +38,7 @@ jobs:
       - run: scripts/start-app.sh
       - run: scripts/zap-scan.sh
       - name: Gate
-        run: uv run zapgate reports/baseline.json reports/api.json --policy zap/policy.toml
+        run: uv run zapgate reports/full.json reports/api.json --policy zap/policy.toml
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -62,7 +62,7 @@ jobs:
       - name: Gate must reject the insecure build
         run: |
           set +e
-          uv run zapgate reports/baseline.json reports/api.json --policy zap/policy.toml
+          uv run zapgate reports/full.json reports/api.json --policy zap/policy.toml
           code=$?
           set -e
           if [ "$code" -ne 1 ]; then
@@ -70,7 +70,7 @@ jobs:
             exit 1
           fi
       - name: The scan found the planted problems
-        run: uv run python scripts/expect_alerts.py reports/baseline.json reports/api.json --require 10038 10021 40012
+        run: uv run python scripts/expect_alerts.py reports/full.json reports/api.json --require 10038 10020 10021 40012
       - uses: actions/upload-artifact@v7
         if: always()
         with:

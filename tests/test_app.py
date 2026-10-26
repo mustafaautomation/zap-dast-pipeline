@@ -97,3 +97,12 @@ def test_docs_disabled_but_openapi_available(secure: TestClient) -> None:
     assert secure.get("/docs").status_code == 404
     spec = secure.get("/openapi.json").json()
     assert "/api/notes" in spec["paths"]
+
+
+def test_openapi_lists_only_json_routes(secure: TestClient) -> None:
+    paths = set(secure.get("/openapi.json").json()["paths"])
+    assert paths == {"/health", "/api/notes", "/api/notes/{note_id}"}
+
+
+def test_index_links_to_search_so_the_spider_finds_it(secure: TestClient) -> None:
+    assert "href='/search?q=welcome'" in secure.get("/").text
