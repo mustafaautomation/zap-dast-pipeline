@@ -136,7 +136,10 @@ def test_repo_policy_loads() -> None:
     from zapgate.policy import load_policy
 
     p = load_policy(Path(__file__).parents[1] / "zap" / "policy.toml")
-    assert p.fail_on == 1 and p.allow == ()
+    assert p.fail_on == 1
+    # Accepted risks stay few and specific: each one is pinned to the localhost CI target.
+    assert {a.plugin_id for a in p.allow} == {"10106", "100001"}
+    assert all(a.uri_pattern and "localhost" in a.uri_pattern.pattern for a in p.allow)
 
 
 def test_cli_exit_codes_and_summary(

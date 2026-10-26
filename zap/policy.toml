@@ -7,9 +7,16 @@
 fail_on = "low"
 min_confidence = 1   # 0 = false positive
 
-# Example of the format (no entries are currently needed):
-# [[allow]]
-# plugin_id = "10049"
-# uri_regex = "/health$"
-# reason = "Health endpoint is intentionally cacheable by the load balancer"
-# expires = 2027-01-31
+# Accepted findings. Each one is specific to how CI runs the scan, not to the app's code.
+
+[[allow]]
+plugin_id = "10106"
+uri_regex = "^http://localhost:8000/"
+reason = "CI scans the app over plain HTTP on localhost; there is no TLS listener to find. A real deployment would terminate TLS at a proxy and should be scanned there."
+expires = 2027-04-30
+
+[[allow]]
+plugin_id = "100001"
+uri_regex = "^http://localhost:8000/?$"
+reason = "The API scan probes the site root, which is the HTML page rather than JSON; the full scan covers that page with the page rules."
+expires = 2027-04-30

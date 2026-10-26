@@ -60,10 +60,10 @@ def test_index_escapes_stored_notes(secure: TestClient) -> None:
     assert "&lt;img src=x onerror=alert(1)&gt;" in body
 
 
-def test_session_cookie_flags(secure: TestClient, insecure: TestClient) -> None:
-    cookie = secure.get("/").headers["set-cookie"].lower()
-    assert "httponly" in cookie and "samesite=strict" in cookie and "secure" in cookie
-    assert "secure" not in insecure.get("/").headers["set-cookie"].lower()
+def test_only_insecure_mode_sets_a_cookie(secure: TestClient, insecure: TestClient) -> None:
+    assert "set-cookie" not in secure.get("/").headers
+    cookie = insecure.get("/").headers["set-cookie"].lower()
+    assert "httponly" not in cookie and "secure" not in cookie
 
 
 def test_create_and_read_note(secure: TestClient) -> None:

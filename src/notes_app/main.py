@@ -117,7 +117,10 @@ def create_app(insecure: bool = False) -> FastAPI:
             "<p><a href='/search?q=welcome'>Search for welcome</a></p></body></html>"
         )
         response = HTMLResponse(page)
-        response.set_cookie("session", "anonymous", httponly=True, secure=not insecure, samesite="strict")
+        if insecure:
+            # A cookie that guards nothing and lacks HttpOnly/Secure/SameSite, for the scan to find.
+            # The hardened app has no session, so it sets no cookie (ZAP 90027 flagged the old one).
+            response.set_cookie("session", "anonymous")
         return response
 
     @app.get("/search", response_class=HTMLResponse, include_in_schema=False)
