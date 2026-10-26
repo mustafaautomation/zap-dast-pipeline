@@ -1,0 +1,15 @@
+# Gate policy for the ZAP scans in CI.
+# Alerts at or above fail_on (with confidence >= min_confidence) fail the build unless an
+# [[allow]] entry covers them. Every entry needs a reason and an expiry date; expired
+# entries stop applying, so accepted risks get reviewed again.
+
+[gate]
+fail_on = "low"
+min_confidence = 1   # 0 = false positive
+
+# Example of the format (no entries are currently needed):
+# [[allow]]
+# plugin_id = "10049"
+# uri_regex = "/health$"
+# reason = "Health endpoint is intentionally cacheable by the load balancer"
+# expires = 2027-01-31
